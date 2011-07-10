@@ -4685,3 +4685,40 @@ endif
 let &cpo = s:cpo_save
 
 " vim:set sw=2 sts=2:
+
+" Customizations {{{"
+function! s:editcmdfor(cmd)
+  let cmd = s:findcmdfor(a:cmd)
+  let cmd = s:sub(cmd,'<sfind>','SplitUnlessOpened')
+  let cmd = s:sub(cmd,'find>','edit')
+  return cmd
+endfunction
+
+function! s:edit(cmd,file,...)
+  let cmd = s:editcmdfor(a:cmd)
+  let cmd .= ' '.(a:0 ? a:1 . ' ' : '')
+  let file = a:file
+  if file !~ '^/' && file !~ '^\w:' && file !~ '://'
+    let file = fnamemodify(rails#app().path(file),':.')
+    echo "real file is ".file
+    exe cmd.file
+  else
+    exe cmd.file
+  endif
+endfunction
+
+function! s:OpenUnlessOpened( cmd, file )
+    let bufnum=bufnr(expand(a:file))
+    let winnum=bufwinnr(bufnum)
+    if winnum != -1
+        " Jump to existing split
+        exe winnum . "wincmd w"
+    else
+        " Make new split as usual
+        exe a:cmd . a:file
+    endif
+endfunction
+
+command! -nargs=1 SplitUnlessOpened :call s:OpenUnlessOpened("split ", "<args>")
+
+" }}}"
