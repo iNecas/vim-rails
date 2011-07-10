@@ -4721,4 +4721,25 @@ endfunction
 
 command! -nargs=1 SplitUnlessOpened :call s:OpenUnlessOpened("split ", "<args>")
 
+function! s:EditSimpleRb(cmd,name,target,prefix,suffix,...)
+  let cmd = s:editcmdfor(a:cmd)
+  if a:target == ""
+    " Good idea to emulate error numbers like this?
+    return s:error("E471: Argument required")
+  endif
+  let f = a:0 ? a:target : rails#underscore(a:target)
+  let jump = matchstr(f,'[#!].*\|:\d*\%(:in\)\=$')
+  let f = s:sub(f,'[#!].*|:\d*%(:in)=$','')
+  if jump =~ '^!'
+    let cmd = s:editcmdfor(cmd)
+  endif
+  if f == '.'
+    let f = s:sub(f,'\.$','')
+  else
+    let f .= a:suffix.jump
+  endif
+  let f = s:gsub(a:prefix,'\n',f.'\n').f
+  return s:findedit(cmd,f)
+endfunction
+
 " }}}"
